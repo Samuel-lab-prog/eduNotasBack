@@ -1,10 +1,54 @@
-# EduNotas Backend
+# EduNotas
+
+Aplicação simples para o professor cadastrar alunos e registrar duas avaliações por aluno. O projeto tem dois repositórios independentes: `backend/` e `frontend/`. A raiz do diretório local contém somente essas duas pastas.
+
+## Rodar localmente
+
+Requer Bun 1.4 ou posterior e Docker Desktop com o serviço de banco em execução. Inicie o PostgreSQL a partir deste repositório:
+
+```sh
+docker compose up -d
+```
+
+Copie `.env.example` para `.env` e prepare a API:
+
+```sh
+bun install
+bun run db:migrate
+bun run db:seed
+bun run dev
+```
+
+Em outro terminal, dentro do repositório do frontend, rode `bun install` e `bun run dev`. A interface abre em `http://localhost:5173`; a API responde em `http://localhost:3000/api`. O usuário de exemplo é `professora@edunotas.com`; a senha de desenvolvimento está em `.env.example`.
+
+## Funcionalidades
+
+- Login de professor com senha armazenada em hash Argon2id e token JWT com expiração.
+- Lista de alunos, busca por nome/matrícula/turma, cadastro e visualização do boletim.
+- Edição das duas notas, limitadas de 0 a 10.
+- Média aritmética calculada pela API e interface como `(nota1 + nota2) / 2`; o valor é derivado, não salvo.
+- Relação professor–aluno no PostgreSQL e matrícula única por professor.
+- Cinco registros de demonstração, todos fictícios; o seed não cria dados pessoais reais.
+
+## Documentação
+
+Os arquivos de projeto e os quatro documentos Word estão em `docs/`. Para refazer os `.docx`, use `scripts/build-documents.py` com o Python, Pillow e `python-docx`.
+
+## Render
+
+`render.yaml` configura a API e o PostgreSQL deste repositório. O Blueprint solicita nome, e-mail e senha do professor na criação e gera a chave JWT. O repositório do frontend tem seu próprio `render.yaml` para o site estático. Se os endereços gerados forem diferentes, ajuste `CORS_ORIGIN` na API e `VITE_API_URL` no site.
+
+O banco gratuito do Render expira após 30 dias. Para manter registros de alunos, escolha um plano PostgreSQL pago antes de usar dados de uma escola; consulte as [limitações do plano gratuito do Render](https://render.com/docs/free).
+
+---
+
+## API
 
 API HTTP em Bun e Elysia, com Prisma e PostgreSQL. O servidor cuida do login do professor e das operações de leitura e escrita dos alunos e das notas.
 
 ## Preparar o banco
 
-Copie `.env.example` para `.env`. Na raiz do projeto, inicie o PostgreSQL local com `docker compose -f backend/compose.yaml up -d`. Depois:
+Copie `.env.example` para `.env` e inicie o PostgreSQL com `docker compose up -d`. Depois:
 
 ```sh
 bun install

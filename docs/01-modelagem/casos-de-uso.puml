@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+actor Professor
+rectangle "EduNotas" {
+ usecase "Acessar sistema" as UC1
+ usecase "Entrar com conta\ndemonstrativa" as UC2
+ usecase "Consultar alunos" as UC3
+ usecase "Cadastrar aluno" as UC4
+ usecase "Consultar notas\ndo aluno" as UC5
+ usecase "Editar notas\ndo aluno" as UC6
+}
+Professor --> UC1
+Professor --> UC2
+Professor --> UC3
+Professor --> UC4
+Professor --> UC5
+Professor --> UC6
+@enduml

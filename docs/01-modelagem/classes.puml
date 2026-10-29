@@ -1,0 +1,29 @@
+@startuml
+skinparam classAttributeIconSize 0
+class Professor {
+  +id: String
+  +name: String
+  +email: String
+  -passwordHash: String
+}
+class Aluno {
+  +id: String
+  +name: String
+  +registration: String
+  +classroom: String
+  +grade1: Decimal
+  +grade2: Decimal
+  +teacherId: String
+  +calcularMedia(): Number
+}
+Professor "1" --> "0..*" Aluno : teacherId
+note right of Aluno
+  A média é derivada:
+  (grade1 + grade2) / 2
+  Não existe coluna average.
+end note
+note bottom of Professor
+  passwordHash é Argon2id.
+  A senha não sai do backend.
+end note
+@enduml
