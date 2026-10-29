@@ -1,0 +1,27 @@
+{
+  "name": "edunotas-backend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "build": "bunx tsc --noEmit",
+    "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:migrate:deploy": "bunx prisma migrate deploy",
+    "db:seed": "bun src/seed.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.2",
+    "@elysiajs/jwt": "^1.4.2",
+    "@prisma/client": "^6.19.0",
+    "elysia": "^1.4.29"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "prisma": "^6.19.0",
+    "typescript": "^5.9.3"
+  }
+}
