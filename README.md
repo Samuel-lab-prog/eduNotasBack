@@ -2,12 +2,22 @@
 
 Aplicação simples para o professor cadastrar alunos e registrar duas avaliações por aluno. O projeto tem dois repositórios independentes: `backend/` e `frontend/`. A raiz do diretório local contém somente essas duas pastas.
 
-## Rodar localmente
+## Rodar tudo em Docker
 
-Requer Bun 1.4 ou posterior e Docker Desktop com o serviço de banco em execução. Inicie o PostgreSQL a partir deste repositório:
+Com os diretórios `backend/` e `frontend/` lado a lado, rode da raiz do projeto:
 
 ```sh
-docker compose up -d
+docker compose -f backend/compose.yaml up --build
+```
+
+A interface abre em `http://localhost:5173`, a API em `http://localhost:3000/api` e o PostgreSQL na porta local `5433`. A primeira inicialização aplica as migrations e cria a professora de demonstração e cinco alunos fictícios. Use `professora@edunotas.com` e `Edunotas-Local-2026!` para entrar.
+
+## Desenvolvimento com Bun
+
+Requer Bun 1.4 ou posterior e Docker Desktop. Para rodar a API e a interface fora de containers, inicie somente o PostgreSQL a partir deste repositório:
+
+```sh
+docker compose up -d postgres
 ```
 
 Copie `.env.example` para `.env` e prepare a API:
@@ -36,9 +46,13 @@ Os arquivos de projeto e os quatro documentos Word estão em `docs/`. Para refaz
 
 ## Render
 
-`render.yaml` configura a API e o PostgreSQL deste repositório. O Blueprint solicita nome, e-mail e senha do professor na criação e gera a chave JWT. O repositório do frontend tem seu próprio `render.yaml` para o site estático. Se os endereços gerados forem diferentes, ajuste `CORS_ORIGIN` na API e `VITE_API_URL` no site.
+`Dockerfile` e `render.yaml` configuram a API e o PostgreSQL deste repositório. O Blueprint solicita nome, e-mail e senha do professor na criação e gera a chave JWT. O repositório do frontend tem seu próprio Dockerfile e `render.yaml`. Crie/sincronize os dois Blueprints; se os endereços gerados forem diferentes dos nomes padrão, ajuste `CORS_ORIGIN` na API e `VITE_API_URL` no site. O Render foi configurado para publicar cada serviço após os checks do GitHub Actions passarem.
 
 O banco gratuito do Render expira após 30 dias. Para manter registros de alunos, escolha um plano PostgreSQL pago antes de usar dados de uma escola; consulte as [limitações do plano gratuito do Render](https://render.com/docs/free).
+
+## CI/CD
+
+O GitHub Actions instala dependências travadas pelo `bun.lock`, verifica tipos, executa os testes, valida a API e constrói a imagem Docker. O workflow do backend usa PostgreSQL de teste e confirma login e seed. Conecte cada repositório ao Render; com `autoDeployTrigger: checksPass`, o Render publica o commit depois que a CI correspondente passar.
 
 ---
 

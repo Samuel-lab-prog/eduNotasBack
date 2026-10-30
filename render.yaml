@@ -1,17 +1,13 @@
 services:
   - type: web
     name: edunotas-api
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: bun install --frozen-lockfile && bunx prisma generate
-    preDeployCommand: bun run db:migrate:deploy
-    startCommand: bun run start
+    dockerfilePath: ./Dockerfile
+    autoDeployTrigger: checksPass
     initialDeployHook: bun run db:seed
-    autoDeployTrigger: off
     healthCheckPath: /api/health
     envVars:
-      - key: BUN_VERSION
-        value: 1.4.0
       - key: DATABASE_URL
         fromDatabase:
           name: edunotas-db
@@ -26,6 +22,8 @@ services:
         sync: false
       - key: TEACHER_PASSWORD
         sync: false
+      - key: SEED_SAMPLE_STUDENTS
+        value: "true"
 
 databases:
   - name: edunotas-db

@@ -1,0 +1,92 @@
+name: Backend CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: edunotas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d edunotas"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/edunotas?schema=public
+      JWT_SECRET: ci-only-secret-with-at-least-thirty-two-characters
+      CORS_ORIGIN: http://localhost:5173
+      TEACHER_NAME: CI Teacher
+      TEACHER_EMAIL: ci@example.com
+      TEACHER_PASSWORD: CI-only-password-2026!
+      SEED_SAMPLE_STUDENTS: "true"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+
+      - name: Type check
+        run: bun run build
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Apply migrations
+        run: bun run db:migrate:deploy
+
+      - name: Seed CI database
+        run: bun run db:seed
+
+      - name: Verify API, login, and sample students
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run start > api.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+
+          ready=false
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/api/health >/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != true ]; then
+            cat api.log
+            exit 1
+          fi
+
+          payload=$(jq -nc --arg email "$TEACHER_EMAIL" --arg password "$TEACHER_PASSWORD" '{email:$email,password:$password}')
+          token=$(curl --fail --silent --show-error -X POST http://127.0.0.1:3000/api/auth/login -H 'Content-Type: application/json' --data "$payload" | jq -er '.token')
+          students=$(curl --fail --silent --show-error http://127.0.0.1:3000/api/students -H "Authorization: Bearer $token")
+          printf '%s' "$students" | jq -e '.students | length == 5' >/dev/null
+
+      - name: Build Docker image
+        run: docker build --tag edunotas-backend:ci .

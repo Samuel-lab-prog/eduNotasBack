@@ -3,6 +3,7 @@ import { jwt } from '@elysiajs/jwt'
 import { Prisma } from '@prisma/client'
 import { config } from './config'
 import { db } from './db'
+import { calculateAverage } from './grades'
 
 const studentFields = {
   name: t.String({ minLength: 1, maxLength: 120 }),
@@ -13,7 +14,7 @@ const studentFields = {
 function present(student: { id: string; name: string; registration: string; classroom: string; grade1: Prisma.Decimal; grade2: Prisma.Decimal }) {
   const grade1 = Number(student.grade1)
   const grade2 = Number(student.grade2)
-  return { ...student, grade1, grade2, average: Math.round(((grade1 + grade2) / 2) * 100) / 100 }
+  return { ...student, grade1, grade2, average: calculateAverage(student.grade1, student.grade2) }
 }
 
 export const studentsRoutes = new Elysia({ prefix: '/api/students' })
