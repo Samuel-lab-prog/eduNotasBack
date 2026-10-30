@@ -7,10 +7,11 @@ Aplicação simples para o professor cadastrar alunos e registrar duas avaliaç�
 Com os diretórios `backend/` e `frontend/` lado a lado, rode da raiz do projeto:
 
 ```sh
-docker compose -f backend/compose.yaml up --build
+Copy-Item backend/.env.docker.example backend/.env.docker
+docker compose --env-file backend/.env.docker -f backend/compose.yaml up --build
 ```
 
-A interface abre em `http://localhost:5173`, a API em `http://localhost:3000/api` e o PostgreSQL na porta local `5433`. A primeira inicialização aplica as migrations e cria a professora de demonstração e cinco alunos fictícios. Use `professora@edunotas.com` e `Edunotas-Local-2026!` para entrar.
+Copie o exemplo só na primeira vez; se `backend/.env.docker` já existir, mantenha-o e edite as variáveis que quiser trocar. A interface abre em `http://localhost:5173`, a API em `http://localhost:3000/api` e o PostgreSQL na porta local `5433`. A primeira inicialização aplica as migrations e cria a professora e, por padrão, cinco alunos fictícios. Use `professora@edunotas.com` e `Edunotas-Local-2026!` para entrar. Esses valores são só para desenvolvimento local.
 
 ## Desenvolvimento com Bun
 
@@ -46,7 +47,18 @@ Os arquivos de projeto e os quatro documentos Word estão em `docs/`. Para refaz
 
 ## Render
 
-`Dockerfile` e `render.yaml` configuram a API e o PostgreSQL deste repositório. O Blueprint solicita nome, e-mail e senha do professor na criação e gera a chave JWT. O repositório do frontend tem seu próprio Dockerfile e `render.yaml`. Crie/sincronize os dois Blueprints; se os endereços gerados forem diferentes dos nomes padrão, ajuste `CORS_ORIGIN` na API e `VITE_API_URL` no site. O Render foi configurado para publicar cada serviço após os checks do GitHub Actions passarem.
+`Dockerfile` e `render.yaml` configuram a API e o PostgreSQL deste repositório. Ao criar/sincronizar o Blueprint do backend, preencha:
+
+| Variável | O que informar |
+|---|---|
+| `TEACHER_NAME` | Nome da pessoa que administrará a conta inicial. |
+| `TEACHER_EMAIL` | E-mail usado para entrar no sistema. |
+| `TEACHER_PASSWORD` | Senha forte, com pelo menos 12 caracteres. |
+| `DATABASE_URL` | Render conecta ao PostgreSQL criado pelo Blueprint. |
+| `JWT_SECRET` | Render gera automaticamente. |
+| `CORS_ORIGIN` | Já aponta para o site padrão `edunotas-web.onrender.com`; altere se usar outro domínio. |
+
+O seed de produção cria somente a conta do professor; alunos fictícios ficam desativados. O repositório do frontend tem seu próprio Dockerfile e Blueprint; confira `VITE_API_URL` com o endereço da API terminado em `/api`. O Render publica cada serviço depois que os checks do GitHub Actions passam.
 
 O banco gratuito do Render expira após 30 dias. Para manter registros de alunos, escolha um plano PostgreSQL pago antes de usar dados de uma escola; consulte as [limitações do plano gratuito do Render](https://render.com/docs/free).
 

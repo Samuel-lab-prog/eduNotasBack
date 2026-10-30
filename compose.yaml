@@ -1,3 +1,5 @@
+name: edunotas
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -7,7 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - edunotas-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -22,15 +24,15 @@ services:
     environment:
       PORT: "3000"
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/edunotas?schema=public
-      JWT_SECRET: edunotas-local-docker-secret-do-not-use-in-production
-      CORS_ORIGIN: http://localhost:5173,http://127.0.0.1:5173
-      TEACHER_NAME: Mariana Costa
-      TEACHER_EMAIL: professora@edunotas.com
-      TEACHER_PASSWORD: Edunotas-Local-2026!
-      SEED_SAMPLE_STUDENTS: "true"
-      SEED_ON_START: "true"
+      JWT_SECRET: "${JWT_SECRET:-local-docker-secret-do-not-use-in-production}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:5173,http://127.0.0.1:5173}"
+      TEACHER_NAME: "${TEACHER_NAME:-Mariana Costa}"
+      TEACHER_EMAIL: "${TEACHER_EMAIL:-professora@edunotas.com}"
+      TEACHER_PASSWORD: "${TEACHER_PASSWORD:-Edunotas-Local-2026!}"
+      SEED_SAMPLE_STUDENTS: "${SEED_SAMPLE_STUDENTS:-true}"
+      SEED_ON_START: "${SEED_ON_START:-true}"
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -45,10 +47,10 @@ services:
     build:
       context: ../frontend
       args:
-        VITE_API_URL: http://localhost:3000/api
+        VITE_API_URL: "${VITE_API_URL:-http://localhost:3000/api}"
     restart: unless-stopped
     ports:
-      - "5173:10000"
+      - "${WEB_PORT:-5173}:10000"
     depends_on:
       backend:
         condition: service_healthy

@@ -23,7 +23,7 @@ services:
       - key: TEACHER_PASSWORD
         sync: false
       - key: SEED_SAMPLE_STUDENTS
-        value: "true"
+        value: "false"
 
 databases:
   - name: edunotas-db
